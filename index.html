@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>the void</title>
+	<meta name="darkreader-lock"> <!-- disables dark reader -->
+	</script>
+	<style>
+		.dim {
+			opacity: 0.2;
+		}
+
+		.navButton {
+			border: none;
+		}
+
+		#drm {
+			position: relative;
+			right: 10px;
+			/* On MSedge this is the only way to cover the page for some reason because of weird rounded corners. better safe than feeling apologetic*/
+			bottom: calc(max(225vh, 235vw) * 0.091);
+			/*"Magic Number" 0.091 found by taking the difference between the iframe aspect ratio's height and the content aspect ratio height (11-9=2) realizing that the 2 needs to be split into 1 and 1 for the top and bottom bars and then doing 1/11 = 0.09090909...*/
+			aspect-ratio: 16 / 11;
+			width: 220vh;
+			min-width: 230vw;
+		}
+
+		#invisContent {
+			top: 0px;
+			left: 0px;
+			position: relative;
+			width: 100vw;
+			height: 100vh;
+			margin: 0px;
+			padding: 0px;
+			z-index: 9999;
+			font-family: sans-serif;
+			overflow-y: scroll;
+		}
+
+		div::-webkit-scrollbar-track { /* Scrollbar css for all browsers but firefox */
+			background-color: transparent;
+		}
+
+		div::-webkit-scrollbar {
+			background-color: transparent;
+		}
+
+		div::-webkit-scrollbar-thumb {
+			background-color: black;
+		}
+
+		@-moz-document url-prefix() { /* Scrollbar CSS for firefox */
+			#invisContent {
+				scrollbar-color: black transparent;
+			}
+		}
+
+		#isntcssthebest { /* prob not actually nessacary but idc */
+			top: 0px;
+			left: 0px;
+			position: absolute;
+			width: 100vw;
+			height: 100vh;
+			margin: 0px;
+			padding: 0px;
+			z-index: 9999;
+		}
+
+		#text {
+			color: black;
+		}
+
+		a {
+			color: black;
+			text-decoration: underline;
+			opacity: 0.5;
+		}
+
+		button:not(.dim):hover,
+		input:hover {
+			opacity: 0.6;
+		}
+
+		a:hover {
+			opacity: 0.7;
+		}
+
+		html {
+			height: 225vh;
+		}
+
+		body {
+			height: 225vh;
+			overflow: hidden;
+			/*Anyone debugging this, disabling overflow:hidden and saving, reloading, scrolling to see what the sizing is like and then reenabling and saving + reloading again will for some reason permanently save where you were previously scrolled until you disable overflow:hidden again and scroll back to the top left. i wasted like an hr wondering why the positioning was so off*/
+			margin: 0;
+			padding: 0;
+		}
+
+		#invisContent * {
+			background-color: transparent !important;
+			color: black !important;
+			cursor: default !important;
+			border-color: black !important;
+			font-variant-emoji: text !important;
+			/*Does not work in safari/ios webview, will eventually need to do unicode nonsense injection for webkit*/
+		}
+
+		:focus-visible {
+			/*safari doesn't support this*/
+			outline: 3px solid black;
+		}
+
+		a.external,
+		a[data-href^=https\:\/\/],
+		a[data-href^=\/wiki\/File\:]/* ^= is starts with. this makes a.external probably redundant, but may be the better way of doing things in 1.0*/
+			{
+			background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3e%3cpath d='M89 5.2H57.9C54.7 5.2 52 7.8 52 11s2.6 5.9 5.9 5.9H75L64.3 27.4H11c-3.2 0-5.7 2.7-5.7 5.9V89c0 3.2 2.5 5.8 5.7 5.8h55.6c3.3 0 5.9-2.6 5.9-5.8V35.7L83.2 25v17.2c0 3.2 2.6 5.8 5.8 5.8s5.8-2.6 5.8-5.8V11c0-3.2-2.6-5.8-5.8-5.8h0zm-28.1 78H16.8V39.1h35.9L34.8 57c-2.3 2.3-2.3 6 0 8.1 2.2 2.3 5.9 2.3 8.2 0 0-.1 17.8-17.8 17.8-17.8v35.9z'/%3e%3c/svg%3e");/*Thanks CFPB!*/
+			background-position: center right;
+			background-repeat: no-repeat;
+			background-size: 0.7em;
+			padding-right: 0.9em;
+		}
+
+		#wContent {
+			position: relative;
+			padding: 0 8px 0 8px;
+		}
+
+		#search {
+			margin: 0 8px 0 8px;
+			/*placeholder css might take a sec*/
+		}
+
+		input,
+		button {
+			border-style: solid;
+		}
+
+		img {
+			filter: contrast(0%) brightness(0%)
+		}
+
+		#wTitle {
+			margin: 0.67em 8px 0.67em 8px;
+		}
+
+		#legal {
+			margin: 0 8px 0 8px;
+		}
+
+		::selection {
+			color: black; /* color: transparent background-color: black for dark mode doesn't work */
+			background-color: transparent;
+			text-decoration: underline overline 4px;
+		}
+
+		#searchLabel {
+			padding: 0 0 0 8px;
+		}
+
+		.searchmatch {
+			font-weight: bold;
+		}
+
+		#invisContent:has(dialog[open]) {/* dims inviscontent div when the child external link dialog is open. not really sure why the dialog isn't affected by this opacity but cool*/
+			opacity: 0.2;
+		}
+
+		#backDialog {
+			margin-top: 0;
+			margin-left: 0;
+		}
+	</style>
+</head>
+
+<body>
+
+	<!--1, 329 to 928, 945 'Distance:' 1113.0071877575633 in basically 1080p-->
+	<!-- Shouldn't generally be able to do id XSS, but can for a handful of elements. getelementbyid selects the FIRST element with that id, so anything below the wcontent div is xssable and needs to be switched to class w/ code that selects the last member of the class.-->
+	<!-- tabindex 0 is to prevent a weird bug where pressing enter on an external link both opens and interacts with the dialog, immediately going to the website-->
+	<div id="isntcssthebest">
+		<div id="invisContent">
+			<dialog id="linkDialog" closedby="any"><span tabindex="0">Visibly open external link?</span><br><button
+					type="button" onclick="window.open(this.getAttribute('data-href', '_blank')).focus()">Go to
+					link</button>
+				<form method="dialog">
+					<button>Cancel</button>
+				</form>
+			</dialog>
+
+			<form onsubmit="wSearch(); return false;"><span id="searchLabel">Search Wikipedia:</span><input id="search"
+					spellcheck="false"><button type="submit">Search</button></form>
+			<button class="navButton dim" id="backButton" onclick="goBack();"><svg xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 100 100" height="20">
+					<path
+						d="M31.7 42.2l16-16c3-3.1 3-7.9 0-11a7.67 7.67 0 0 0-11 0L7.3 44.5c-3.1 3.1-3.1 8.1 0 11l29.4 29.4c3 3 7.9 3 11 0 3-3.1 3-8.1 0-11.1l-16.1-16h55.5c4.3 0 7.8-3.5 7.8-7.8s-3.5-7.8-7.8-7.8H31.7z" />
+				</svg></button><button class="navButton dim" id="forwardButton" onclick="goForward();"><svg
+					xmlns="http://www.w3.org/2000/svg" transform="scale(-1 -1)" viewBox="0 0 100 100" height="20">
+					<path
+						d="M31.7 42.2l16-16c3-3.1 3-7.9 0-11a7.67 7.67 0 0 0-11 0L7.3 44.5c-3.1 3.1-3.1 8.1 0 11l29.4 29.4c3 3 7.9 3 11 0 3-3.1 3-8.1 0-11.1l-16.1-16h55.5c4.3 0 7.8-3.5 7.8-7.8s-3.5-7.8-7.8-7.8H31.7z" />
+				</svg></button>
+
+			<h1 id="wTitle">Invisibrowse Technical Demo</h1>
+			<div id="wContent">
+				<p>Lorem ipsum dolor sit amet</p>
+			</div>
+			<p id="legal"></p>
+		</div>
+	</div> <!-- This <p> is causing a linebreak that looks weird, can just remove it rn but idk-->
+	<iframe id="drm"
+		src="https://www.byutv.org/embeddedPlayer/?content-id=4efd99b8-671b-457c-91af-08ca54867e43&s=1602.3&e=2.5&utm_source=byub&utm_medium=embed&utm_campaign=share_2025&utm_content=clip"
+		allow="encrypted-media"></iframe>
+<!--
+alt theme: https://www.byutv.org/embeddedPlayer/?content-id=97c76c73-89fd-4f2d-8750-0572ae973de0&s=1467.553587&e=2.319999&utm_source=byub&utm_medium=embed&utm_campaign=share_2025&utm_content=clip
+-->
+	<script defer src="https://cdn.jsdelivr.net/npm/libcurl.js@0.7.1/libcurl_full.js" onload="main()"></script>
+
+	<script>
+		var hist = [];
+		var histPos = 1; // last element in hist array
+		setTimeout(() => {
+			console.log("now uninvis the text");
+		}, 20000);
+
+		function histUpdate() {
+			let backButton = document.getElementById("backButton");
+			let forwardButton = document.getElementById("forwardButton");
+			if (hist.length > histPos) {
+				backButton.classList.remove("dim");
+			} else {
+				backButton.classList.add("dim");
+			}
+			if (histPos > 1) {
+				forwardButton.classList.remove("dim");
+			} else {
+				forwardButton.classList.add("dim");
+			}
+
+		}
+		var curlReady = false;
+		async function intro() {
+			let spiel = `Welcome to the Invisibrowse Technical Demo. Take a screenshot. Record a video. If working properly, the website will appear fully black.
+    Invisibrowse works by embedding a single-color paused portion of a {/wiki/Digital_rights_management|Digital rights management[DRM] (Digital Rights Management)-protected video, and overlaying black text above the video. DRM video is used by websites such as Netflix to prevent screenshotting or recording any of their content.
+    When DRM video is screenshotted, recorded, screenshared, or accessed in any way other than from viewing the physical screen, it displays as pure black. Black text above a identical black background is Invisible. The "gray" link text is really transparent black text that appears gray on a white background and fully black on a black background.
+    Invisibrowse is primarily designed to prevent school or parent-installed spyware from viewing your entire screen. There are quite a few extensions that can view your screen, including GoGuardian and Securly.
+
+    <b>This is a technical demo, currently missing vital features and security measures.</b> You can search and browse the text of all Wikipedia articles invisibly, and that's it.
+    A 1.0 update will release in December 2025 with the following features:<ul> - Ability to search the entire web + enter URLs and browse text content
+     - Invisible, shuffling virtual keyboard to defend against keylogging
+     - Obfuscation to prevent spyware from tampering with or recording content
+     - Defense against Alt+Tab, which currently exposes content at a very low resolution in some cases
+     - Fix issue where resizing window to be larger can sometimes expose content
+     - Invisible mouse cursor for added security
+     - Ensuring content is not displayed while DRM is loading</ul>Future updates will include (in order of estimated release date):<ul> - Grayscale images
+     - Optional dark mode
+     - Configuration options to change Wisp server, theme, tab name, etc.
+     - Support for Safari and mobile browsers (including Webview)
+     - Initially optional &lt;canvas&gt; display mode
+     - Chat (ideally with multiple services supported, including Discord)
+     - A fix for lag when zooming in and out (if possible)
+     - Video content (if possible)
+     - Full color (if possible)
+     - Offline mode (if possible)</ul>Made by {https://underdevelopedprefrontalcortex.github.io[Underdevelopedprefrontalcortex]. Credits:
+     {https://github.com/MercuryWorkshop/wisp-protocol[Wisp] and {https://github.com/ading2210/libcurl.js[libcurl.js], the server protocol and client used for proxying requests
+     {https://anura.pro[AnuraOS] for their Wisp server and also for being a cool project
+     The {/wiki/Consumer_Financial_Protection_Bureau|Consumer Financial Protection Bureau[Consumer Financial Protection Bureau] for their {https://commons.wikimedia.org/wiki/File:External_Link_(89630)_-_The_Noun_Project.svg[external link] and {https://commons.wikimedia.org/wiki/File:Arrow_Left_(89598)_-_The_Noun_Project.svg[arrow] icons, licensed CC0
+
+    The Invisibrowse Technical Demo is dedicated to the public domain with {/wiki/Public-domain-equivalent_license#CC0|Public-domain-equivalent license[Creative Commons Zero], though it uses Libcurl.js as an external script licensed under the {https://www.gnu.org/licenses/lgpl-3.0.html[GNU Lesser General Public License version 3]. You can view the Invisibrowse source code {https://github.com/invisibrowse/invisibrowse[here]. Future versions will still be licensed freely, but may not have unobfuscated code available.
+    Credit (to {https://underdevelopedprefrontalcortex.github.io[Underdeveloped Prefrontal Cortex]) is appreciated, but not legally required.
+    <em>v0.0.1</em>`; // Changes (if any) made after publishing the github repo but before posting the link anywhere public will not update the version number.
+
+			let ast = document.getElementById("wContent");
+			// WARNING: THE FOLLOWING LINE IS NOT SECURE IN ANY WAY AND SHOULD ONLY BE USED ON HARDCODED VALUES! To do something like this with non-hardcoded text, see the code of wSearch()
+			let realSpiel = spiel.replaceAll("{", "<a tabindex='0' onclick='linkClick(this);' onkeydown='if (event.key === `Enter`) {linkClick(this);}' data-href='").replaceAll("|", "' data-title='").replaceAll("[", "'>").replaceAll("]", "</a>").replaceAll("\n", "<br>").replaceAll(" - ", "<li>");
+			ast.innerHTML = realSpiel;
+			histPos = 1;
+			hist = [[false, "Invisibrowse Technical Demo", realSpiel]];
+			histUpdate();
+		}
+		async function pageSet(pageTitle, humanTitle, pageText) {
+			let parser = new DOMParser();
+			document.getElementById("wContent").innerHTML = pageText;
+			document.getElementById("wTitle").textContent = humanTitle;
+			if (pageTitle == false) { document.getElementById("legal").innerHTML = "" } else {
+				let cNotice = parser.parseFromString("The text above is taken from the copyrighted Wikipedia article <a class='external' tabindex='0' onclick='linkClick(this);' onkeydown='if (event.key === `Enter`) {linkClick(this);}'></a>; it is used under the <a class='external' tabindex='0' onclick='linkClick(this);' onkeydown='if (event.key === `Enter`) {linkClick(this);}' data-href='https://creativecommons.org/licenses/by-sa/4.0/'>Creative Commons Attribution-ShareAlike 4.0 International License</a> (CC BY-SA). You may redistribute the text, verbatim or modified, providing that you comply with the terms of the CC BY-SA.", "text/html").documentElement.childNodes[1];
+				cNotice.childNodes[1].textContent = humanTitle;
+				cNotice.childNodes[1].setAttribute("data-href", "https://en.wikipedia.org/wiki/" + pageTitle);
+				document.getElementById("legal").innerHTML = cNotice.innerHTML;
+			}
+
+		}
+		function goBack() {
+			if (hist.length > histPos) {
+				histPos += 1;
+				pageSet(...hist[hist.length - histPos]);
+				histUpdate();
+			}
+		}
+		function goForward() {
+			if (histPos > 1) {
+				histPos -= 1;
+				pageSet(...hist[hist.length - histPos]);
+				histUpdate();
+			}
+		}
+		async function main() {
+			intro();
+			await libcurl.load_wasm();
+			await libcurl.set_websocket("wss://anura.pro/wss/");
+			curlReady = true;
+		}
+
+		async function wSearch() {
+			if (curlReady) {
+				const term = document.getElementById("search").value;
+				let parser = new DOMParser();
+				let results = await libcurl.fetch("https://en.wikipedia.org/w/api.php?action=query&list=search&format=json&srsearch=" + term);
+				let htmlResults = "";
+				JSON.parse(await results.text()).query.search.forEach((item) => {
+					e = parser.parseFromString("<a class='searchmatch' tabindex='0' onclick='linkClick(this);' onkeydown='if (event.key === `Enter`) {linkClick(this);}'></a><br><span></span><br>", "text/html").documentElement.childNodes[1];
+					e.childNodes[0].textContent = item.title;
+					e.childNodes[0].setAttribute("data-href", "/wiki/" + item.title);
+					e.childNodes[0].setAttribute("data-title", item.title);
+					e.childNodes[2].innerHTML = item.snippet + "...";
+					htmlResults += e.innerHTML;
+				});
+				document.getElementById("wContent").innerHTML = htmlResults;
+				document.getElementById("legal").innerHTML = "";
+				document.getElementById("wTitle").textContent = 'Results for "' + term + '":';
+
+				if (histPos != 1) {
+					hist.splice(-histPos + 1)
+				}
+				histPos = 1;
+				hist.push([false, 'Results for "' + term + '":', htmlResults]);
+				histUpdate();
+			}
+		}
+
+		async function wPageGet(pageTitle, humanTitle) {
+			if (curlReady) {
+				let wPage = await libcurl.fetch("https://en.wikipedia.org/w/api.php?action=parse&prop=text&formatversion=2&format=json&page=" + pageTitle);
+				let parser = new DOMParser();
+				let wPageHTML = parser.parseFromString(JSON.parse(await wPage.text()).parse.text, "text/html").documentElement.childNodes[1].childNodes[0]
+				let allElements = wPageHTML.querySelectorAll("*");
+				let links = wPageHTML.querySelectorAll("a");
+				let forDeletion = wPageHTML.querySelectorAll(".mw-editsection, video, audio, form, input, script"); // not an exhaustive list
+				forDeletion.forEach((elem) => { elem.remove(); })
+
+
+				links.forEach((link) => {
+					link.setAttribute("data-href", link.getAttribute("href")); /* may still result in some niche nulls but idc */
+					link.setAttribute("data-title", link.getAttribute("title"));
+					link.setAttribute("tabindex", 0); /* this makes images tabbable but i think that's fine when you can open them in new tabs */
+					link.setAttribute("onclick", "linkClick(this);");
+					link.setAttribute("onkeydown", "if (event.key === 'Enter') {linkClick(this);}");
+				});
+				allElements.forEach((elem) => {
+
+					elem.removeAttribute("href");
+					elem.removeAttribute("style");
+					/*elem.setAttribute("href", "#");*/
+					elem.removeAttribute("title");
+					elem.removeAttribute("src");
+					elem.removeAttribute("srcset");
+				}); /* Removes potentially dangerous href (for bug reasons/dragging page to other tab, but most importantly for the demo for showing up on hover), moving data to data-href, putting # in href anyway because that's the best way to make link act linky, removes src and srcset to get rid of requests to wikimedia/wp that may display color/make network traces a workable strategy*/
+
+				await pageSet(pageTitle, humanTitle, wPageHTML.innerHTML); /*prob just human title is ever necessary but i'm afraid there's edge cases lurking around every corner*/
+
+				if (histPos != 1) {
+					hist.splice(-histPos + 1);
+				}
+				histPos = 1;
+				hist.push([pageTitle, humanTitle, wPageHTML.innerHTML]);
+				histUpdate();
+			}
+		}
+
+		async function linkClick(element) {
+			let url = element.getAttribute("data-href");
+			if (url.startsWith("/wiki/File:")) {
+				url = "https://en.wikipedia.org" + url;
+			}
+			if (url.startsWith("/wiki/")) { /* make /wiki/file: fail this check to go to */
+				await wPageGet(url.slice(6), element.getAttribute("data-title")); /* await shouldn't be necessary but just want to match with the other await blelow */
+			} else if (url.startsWith("#")) {
+				let scrollTarget = document.getElementById(url.slice(1));
+				document.getElementById("invisContent").scrollTop = scrollTarget.offsetTop; /* would use .scrollIntoView() but for some baffling reason the container option that lets you scroll divs correctly doesn't exist in firefox*/
+			} else {
+				let warnDialog = document.getElementById("linkDialog");
+				warnDialog.childNodes[2].textContent = 'Open "' + url + '" in new tab';
+				warnDialog.childNodes[2].setAttribute("data-href", url);
+				warnDialog.showModal();
+			}
+		}
+	</script>
+</body>
+
+</html>

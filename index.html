@@ -220,9 +220,6 @@ alt theme: https://www.byutv.org/embeddedPlayer/?content-id=97c76c73-89fd-4f2d-8
 	<script>
 		var hist = [];
 		var histPos = 1; // last element in hist array
-		setTimeout(() => {
-			console.log("now uninvis the text");
-		}, 20000);
 
 		function histUpdate() {
 			let backButton = document.getElementById("backButton");
@@ -264,12 +261,12 @@ alt theme: https://www.byutv.org/embeddedPlayer/?content-id=97c76c73-89fd-4f2d-8
      - Full color (if possible)
      - Offline mode (if possible)</ul>Made by {https://underdevelopedprefrontalcortex.github.io[Underdevelopedprefrontalcortex]. Credits:
      {https://github.com/MercuryWorkshop/wisp-protocol[Wisp] and {https://github.com/ading2210/libcurl.js[libcurl.js], the server protocol and client used for proxying requests
-     {https://anura.pro[AnuraOS] for their Wisp server and also for being a cool project
+     {https://ahkahnay.top[akane] for his {https://fern.best[fern.best] Wisp server
      The {/wiki/Consumer_Financial_Protection_Bureau|Consumer Financial Protection Bureau[Consumer Financial Protection Bureau] for their {https://commons.wikimedia.org/wiki/File:External_Link_(89630)_-_The_Noun_Project.svg[external link] and {https://commons.wikimedia.org/wiki/File:Arrow_Left_(89598)_-_The_Noun_Project.svg[arrow] icons, licensed CC0
 
     The Invisibrowse Technical Demo is dedicated to the public domain with {/wiki/Public-domain-equivalent_license#CC0|Public-domain-equivalent license[Creative Commons Zero], though it uses Libcurl.js as an external script licensed under the {https://www.gnu.org/licenses/lgpl-3.0.html[GNU Lesser General Public License version 3]. You can view the Invisibrowse source code {https://github.com/invisibrowse/invisibrowse[here]. Future versions will still be licensed freely, but may not have unobfuscated code available.
     Credit (to {https://underdevelopedprefrontalcortex.github.io[Underdeveloped Prefrontal Cortex]) is appreciated, but not legally required.
-    <em>v0.0.1</em>`; // Changes (if any) made after publishing the github repo but before posting the link anywhere public will not update the version number.
+    <em>v0.0.2</em>`; // Changes (if any) made after publishing the github repo but before posting the link anywhere public will not update the version number.
 
 			let ast = document.getElementById("wContent");
 			// WARNING: THE FOLLOWING LINE IS NOT SECURE IN ANY WAY AND SHOULD ONLY BE USED ON HARDCODED VALUES! To do something like this with non-hardcoded text, see the code of wSearch()
@@ -308,7 +305,7 @@ alt theme: https://www.byutv.org/embeddedPlayer/?content-id=97c76c73-89fd-4f2d-8
 		async function main() {
 			intro();
 			await libcurl.load_wasm();
-			await libcurl.set_websocket("wss://anura.pro/wss/");
+			await libcurl.set_websocket("wss://fern.best/wisp");
 			curlReady = true;
 		}
 
@@ -397,5 +394,6 @@ alt theme: https://www.byutv.org/embeddedPlayer/?content-id=97c76c73-89fd-4f2d-8
 		}
 	</script>
 </body>
+
 
 </html>
